@@ -49,7 +49,7 @@ EOF
 
 cleanUp()
 {
-	echo -n "  Stopping wifi tether service... "
+	echo -n "Stopping wifi tether service... "
 	$WIFI_TETHER_PATH/bin/tether stop >/dev/null 2>&1
 	if [ $? -ne 0 ]; then
 		echo -e "FAIL!\n[E] Code $? returned by 'WIFI_TETHER_PATH/tether stop'" >&2
@@ -157,8 +157,9 @@ fi
 echo "::Begin MAC address cicling"
 if [ -e $ROM_MAC_FILE_PATH ]
 then
-	echo -e "Found $ROM_MAC_FILE_PATH\n"
-
+	ORIGINAL_MAC=$(cat "$ROM_MAC_FILE_PATH")
+	echo -e "$ROM_MAC_FILE_PATH found and stored\n"
+	
 	while(true)
 	l=`expr $n + 1`
 	do
@@ -166,8 +167,6 @@ then
 			echo -e "[E] Mac list file not found\n" >&2
 			exit
 		fi
-		
-		ORIGINAL_MAC=$(cat "$ROM_MAC_FILE_PATH")
 		
 		for mac in $(sed -e '/^.*#/d' -e '/^$/d' -e '/^[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]/!d' $MAC_FILE_LIST_PATH)
 		do

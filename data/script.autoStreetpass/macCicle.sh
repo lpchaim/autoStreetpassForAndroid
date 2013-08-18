@@ -20,27 +20,28 @@
 # it is safe. I did try my best to prevent anything nasty from happenning tough.
 
 # Variable values
-timeToWait=30m	# Use s for seconds, m for minutes, h for hours, d for days
-macListPath=/mnt/sdcard/A/script/MAC/macList.txt	# File from where MACs will be read
-androidMacFilePath=/data/.nvmac.info	# Path to android file where mac address is stored
-wifiTetherPath=/data/data/com.googlecode.android.wifi.tether # Path to wifi tether app folder 
+TIME_DELAY=30m	# Use s for seconds, m for minutes, h for hours, d for days
+MAC_FILE_LIST_PATH=/mnt/sdcard/data/script.autoStreetpass/macList.txt	# File from where MACs will be read
+ROM_MAC_FILE_PATH=/data/.nvmac.info	# Path to android file where mac address is stored
+WIFI_TETHER_PATH=/data/data/com.googlecode.android.wifi.tether # Path to wifi tether app folder 
 
 # Control variables, do not modify
-n=0
-l=0
 USB_TETHERING_ENABLE=false
 LOOP_TIMES=1
+n=0
+l=0
 
 usage()
 {
 cat << EOF >&2
+
 Usage: $0 [-h|-u|-i]
 
 Starts and manages a wifi access point while cicling through different MAC addresses
 
 		-h		Display help page
-		-u		Enables usb reverse tethering (default tethering has to be manually enabled before starting)
-		-l		Number of times to iterate through source MAC addresses (0 to repeat indefinitely)
+		-u		Enables usb reverse tethering
+		-l		Number of times to iterate MAC list
 		
 Report bugs at https://github.com/lupec/autoStreetpassForAndroid/issues
 EOF
@@ -49,16 +50,16 @@ EOF
 cleanUp()
 {
 	echo -n "  Stopping wifi tether service... "
-	$wifiTetherPath/bin/tether stop >/dev/null 2>&1
+	$WIFI_TETHER_PATH/bin/tether stop >/dev/null 2>&1
 	if [ $? -ne 0 ]; then
-		echo -e "FAIL!\n[E] Code $? returned by 'wifiTetherPath/tether stop'" >&2
+		echo -e "FAIL!\n[E] Code $? returned by 'WIFI_TETHER_PATH/tether stop'" >&2
 	fi
 	echo "OK!"
 	
 	echo -n "Restoring original MAC address..."
-	sed -i "s/.*/$ORIGINAL_MAC/" "$androidMacFilePath"
+	sed -i "s/.*/$ORIGINAL_MAC/" "$ROM_MAC_FILE_PATH"
 	if [ $? -ne 0 ]; then
-		echo -e "FAIL!\n[E] Code $? returned by 'echo $ORIGINAL_MAC > $androidMacFilePath'" >&2
+		echo -e "FAIL!\n[E] Code $? returned by 'echo $ORIGINAL_MAC > $ROM_MAC_FILE_PATH'" >&2
 	fi
 	echo "OK!"
 	
@@ -92,6 +93,7 @@ do
 	case $OPT in
 		h)
 			usage
+			exit
 			;;
 		u)
 			USB_TETHERING_ENABLE=true
@@ -105,10 +107,11 @@ do
 			fi
 			;;
 		t)
-				timeToWait=$OPTARG
+				TIME_DELAY=$OPTARG
 			;;
 		*)
 			usage
+			exit
 			;;
 	esac
 done
@@ -120,8 +123,6 @@ echo ":: Streetpass relay automation script ::"
 echo "::                                    ::"
 echo "::::::::::::::::::::::::::::::::::::::::"
 echo -e "by lpchaim aka lupec\n"
-
-echo "Dir: $SM_ALIAS"
 
 echo -n "::Checking for root rights..."
 if [ $(whoami) != root ]; then
@@ -154,54 +155,54 @@ then
 fi
 
 echo "::Begin MAC address cicling"
-if [ -e $androidMacFilePath ]
+if [ -e $ROM_MAC_FILE_PATH ]
 then
-	echo -e "Found $androidMacFilePath\n"
+	echo -e "Found $ROM_MAC_FILE_PATH\n"
 
 	while(true)
 	l=`expr $n + 1`
 	do
-		if [ ! -e $macListPath ]; then
+		if [ ! -e "$MAC_FILE_LIST_PATH" ]; then
 			echo -e "[E] Mac list file not found\n" >&2
 			exit
 		fi
 		
-		ORIGINAL_MAC=$(cat "$androidMacFilePath")
+		ORIGINAL_MAC=$(cat "$ROM_MAC_FILE_PATH")
 		
-		for mac in $(sed -e '/^.*#/d' -e '/^$/d' -e '/^[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]/!d' $macListPath)
+		for mac in $(sed -e '/^.*#/d' -e '/^$/d' -e '/^[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]/!d' $MAC_FILE_LIST_PATH)
 		do
 			n=`expr $n + 1`
 			echo "Iteration $n:"
 			
-			if [ -n "$(ps | grep $wifiTetherPath)" ]	# If service was already running before by this script, stop it
+			if [ -n "$(ps | grep $WIFI_TETHER_PATH)" ]	# If service was already running before by this script, stop it
 			then
 				echo -n "  Stopping wifi tether service... "
-				$wifiTetherPath/bin/tether stop >/dev/null 2>&1
+				$WIFI_TETHER_PATH/bin/tether stop >/dev/null 2>&1
 				if [ $? -ne 0 ]; then
-					echo -e " FAIL!\n[E] Code $? returned by 'wifiTetherPath/tether stop'" >&2
+					echo -e " FAIL!\n[E] Code $? returned by 'WIFI_TETHER_PATH/tether stop'" >&2
 					exit
 				fi
 				echo "OK!"
 			fi
 			 
 			echo -n "  Writing $mac to file... "
-			sed -i "s/.*/$mac/" "$androidMacFilePath"
+			sed -i "s/.*/$mac/" "$ROM_MAC_FILE_PATH"
 			if [ $? -ne 0 ]; then
-				echo "FAIL!\n[E] Code $? returned by sed -i 's|.*|$mac| $androidMacFilePath'" >&2
+				echo "FAIL!\n[E] Code $? returned by sed -i 's|.*|$mac| $ROM_MAC_FILE_PATH'" >&2
 				exit
 			fi
 			echo "OK!"
 			 
 			echo -n "  Starting wifi tether service... "
-			$wifiTetherPath/bin/tether start >/dev/null 2>&1
+			$WIFI_TETHER_PATH/bin/tether start >/dev/null 2>&1
 			if [ $? -ne 0 ]; then
-				echo -e " FAIL!\n[E] Code $? returned by 'wifiTetherPath/tether start'" >&2
+				echo -e " FAIL!\n[E] Code $? returned by 'WIFI_TETHER_PATH/tether start'" >&2
 				exit
 			fi
 			echo "OK!"
 			
-			echo -n "  Waiting for $timeToWait to pass... "
-			busybox sleep $timeToWait
+			echo -n "  Waiting for $TIME_DELAY to pass... "
+			busybox sleep $TIME_DELAY
 			echo "OK!"
 			
 			echo -e "\n"
@@ -220,6 +221,6 @@ then
 	cleanUp
 	echo "All done, quitting now!"
 else
-	echo "[E] $androidMacFilePath not found! Is this really a supported rom?" >&2
+	echo "[E] $ROM_MAC_FILE_PATH not found! Is this really a supported rom?" >&2
 	exit
 fi

@@ -27,7 +27,7 @@ WIFI_TETHER_PATH=/data/data/com.googlecode.android.wifi.tether # Path to wifi te
 
 # Control variables, do not modify
 USB_TETHERING_ENABLE=false
-USB_TETHERING_ENFORCE=false
+USB_TETHERING_ENSURE=false
 LOOP_TIMES=1
 n=0
 l=0
@@ -106,7 +106,7 @@ do
 		u)
 			USB_TETHERING_ENABLE=true
 			if [ $OPTARG == "true" ]; then
-				USB_TETHERING_ENFORCE=true
+				USB_TETHERING_ENSURE=true
 			fi
 			;;
 		l)
@@ -147,14 +147,15 @@ then
 	echo "::Reverse tethering connection"
 	echo -n "Trying to init usb interface... "
 	netcfg rndis0 dhcp >/dev/null 2>&1
-	if [ $? -eq 1 ]; then
-		echo -n -e "FAIL!\n  Could not connect" >&2
-		if $USB_TETHERING_ENFORCE; then
+	if [ $? -ne 0 ]; then
+		echo -e " FAIL!\n[E] Code $? returned by 'ifconfig rmnet0 0.0.0.0'" >&2
+		echo -n -e "\n  Could not connect" >&2
+		if $USB_TETHERING_ENSURE; then
 			echo -e ", quitting\n" >&2
 		else
 			echo -e ", skipping\n" >&2
 		fi
-	elif [ $? -eq 0 ]; then
+	else
 		echo "OK!\n"
 		
 		echo -n "Setting up dummy 3G network... "
@@ -164,9 +165,6 @@ then
 			exit
 		fi
 		echo "OK!\n"
-	else
-		echo -e "FAIL!\n[E] Code $? returned by 'netcfg rndis0 dhcp'" >&2
-		exit
 	fi
 fi
 

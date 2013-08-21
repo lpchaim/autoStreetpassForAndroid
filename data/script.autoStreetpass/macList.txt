@@ -1,4 +1,6 @@
 ﻿# This file contains all MAC addresses that will be cicled
+# Taken from the GbaTemp spreadsheet found on https://docs.google.com/spreadsheet/lv?key=0AvvH5W4E2lIwdEFCUkxrM085ZGp0UkZlenp6SkJablE&f=true&noheader=true&gid=0
+# Updated 18/08/2013
 
 # GbaTemp prime MACs
 #4E:53:50:4F:4F:40
@@ -23,3 +25,26 @@
 00:0D:67:15:D7:21
 00:0D:67:15:D5:44
 00:0D:67:15:D2:59
+00:0D:67:15:D6:FD
+
+# Personal MACs
+34:08:04:BF:AC:8A
+CC:FE:3C:92:DF:43
+A6:F3:C1:0B:C6:7E
+62:36:DD:7E:05:B9
+60:36:DD:7E:05:B8
+00:EB:2D:D8:62:AA
+7C:61:93:07:6C:25
+F4:6D:04:A1:6B:86
+00:25:86:D1:D8:A3
+00:02:72:7D:96:0C
+06:1B:9E:28:FB:B2
+C0:3F:0E:8F:2B:1A
+00:E0:B8:AE:08:04
+00:0c:f6:c4:88:00
+10:68:3F:37:E0:2C
+00:23:14:A7:FC:11
+90:F6:52:D0:BE:A2
+00:17:82:F5:88:38
+00:14:A5:C6:3A:64
+cc:3a:61:08:16:df

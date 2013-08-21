@@ -27,6 +27,7 @@ WIFI_TETHER_PATH=/data/data/com.googlecode.android.wifi.tether # Path to wifi te
 
 # Control variables, do not modify
 USB_TETHERING_ENABLE=false
+USB_TETHERING_ENFORCE=false
 LOOP_TIMES=1
 n=0
 l=0
@@ -35,13 +36,20 @@ usage()
 {
 cat << EOF >&2
 
-Usage: $0 [-h|-u|-i]
+Usage: macCicle [-h] [-u enforce] [-l loops] [-t delay<unit>]
 
 Starts and manages a wifi access point while cicling through different MAC addresses
 
 		-h		Display help page
-		-u		Enables usb reverse tethering
-		-l		Number of times to iterate MAC list
+		-u		Enables usb reverse tethering 
+		-l		Number of times to iterate through MAC list
+		-t		Sets a custom delay beteen MAC changing
+		
+		[enforce] Set to true to quit if usb tethering fails
+		[loops] Number of loops, default 1
+				Pass 0 for it to loop indefinitely
+		[delay] Time to wait
+				<UNIT> s:seconds|m:minutes|h:hours|d:days
 		
 Report bugs at https://github.com/lupec/autoStreetpassForAndroid/issues
 EOF
@@ -59,7 +67,7 @@ cleanUp()
 	echo -n "Restoring original MAC address..."
 	sed -i "s/.*/$ORIGINAL_MAC/" "$ROM_MAC_FILE_PATH"
 	if [ $? -ne 0 ]; then
-		echo -e "FAIL!\n[E] Code $? returned by 'echo $ORIGINAL_MAC > $ROM_MAC_FILE_PATH'" >&2
+		echo -e "FAIL!\n[E] Code $? returned when restoring $ORIGINAL_MAC > $ROM_MAC_FILE_PATH'" >&2
 	fi
 	echo "OK!"
 	
@@ -88,7 +96,7 @@ signalIntercept()
 trap signalIntercept SIGINT SIGTERM
 
 # Parse commenad line arguments
-while getopts "ul:t:" OPT
+while getopts "hu:l:t:" OPT
 do
 	case $OPT in
 		h)
@@ -97,6 +105,9 @@ do
 			;;
 		u)
 			USB_TETHERING_ENABLE=true
+			if [ $OPTARG == "true" ]; then
+				USB_TETHERING_ENFORCE=true
+			fi
 			;;
 		l)
 			if [ $OPTARG -lt 0 ]
@@ -107,7 +118,7 @@ do
 			fi
 			;;
 		t)
-				TIME_DELAY=$OPTARG
+			TIME_DELAY=$OPTARG
 			;;
 		*)
 			usage
@@ -131,13 +142,18 @@ if [ $(whoami) != root ]; then
 fi
 echo -e " OK!\n"
 
-if [ $USB_TETHERING_ENABLE ]
+if $USB_TETHERING_ENABLE
 then
 	echo "::Reverse tethering connection"
 	echo -n "Trying to init usb interface... "
 	netcfg rndis0 dhcp >/dev/null 2>&1
 	if [ $? -eq 1 ]; then
-		echo -e "FAIL!\n  Could not connect, skipping!\n" >&2		
+		echo -n -e "FAIL!\n  Could not connect" >&2
+		if $USB_TETHERING_ENFORCE; then
+			echo -e ", quitting\n" >&2
+		else
+			echo -e ", skipping\n" >&2
+		fi
 	elif [ $? -eq 0 ]; then
 		echo "OK!\n"
 		

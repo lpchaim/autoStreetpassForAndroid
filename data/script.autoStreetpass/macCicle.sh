@@ -36,20 +36,22 @@ usage()
 {
 cat << EOF >&2
 
-Usage: macCicle [-h] [-u enforce] [-l loops] [-t delay<unit>]
+Usage: macCicle [-h] [-u ensure] [-l loops] [-t delay<unit>]
 
 Starts and manages a wifi access point while cicling through different MAC addresses
 
-		-h		Display help page
-		-u		Enables usb reverse tethering 
-		-l		Number of times to iterate through MAC list
-		-t		Sets a custom delay beteen MAC changing
+		-h					Display help page
+		-u ensure			Enables usb reverse tethering
+							Optional ensure argument, if true quits on error
+		-l loops			Number of times to iterate through MAC list, default 1
+							Pass 0 for it to loop indefinitely
+		-t	delay<unit>		Sets a custom delay beteen MAC changing
+							Unit format: [s:seconds|m:minutes|h:hours|d:days]
 		
-		[enforce] Set to true to quit if usb tethering fails
 		[loops] Number of loops, default 1
 				Pass 0 for it to loop indefinitely
 		[delay] Time to wait
-				<UNIT> s:seconds|m:minutes|h:hours|d:days
+				<UNIT> 
 		
 Report bugs at https://github.com/lupec/autoStreetpassForAndroid/issues
 EOF

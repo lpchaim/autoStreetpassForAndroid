@@ -16,3 +16,6 @@ $RECYCLE.BIN/
 ## User defined
 #############
 *.bak
+*.zip
+*.7z
+*.rar

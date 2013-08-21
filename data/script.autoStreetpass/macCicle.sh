@@ -199,7 +199,7 @@ then
 			fi
 			 
 			echo -n "  Writing $mac to file... "
-			sed -i "s/.*/$mac/" "$ROM_MAC_FILE_PATH"
+			sed -i "s/[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]/$mac/" "$ROM_MAC_FILE_PATH"
 			if [ $? -ne 0 ]; then
 				echo "FAIL!\n[E] Code $? returned by sed -i 's|.*|$mac| $ROM_MAC_FILE_PATH'" >&2
 				exit

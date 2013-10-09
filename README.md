@@ -36,6 +36,7 @@ as well as commentary lines denoted by '#' at their start.
 
 
 As for the script's arguments, see the script's help text below:
+
 	Usage: macCicle [-h] [-u ensure] [-l loops] [-t delay<unit>]
 
 	Starts and manages a wifi access point while cicling through different MAC addresses
